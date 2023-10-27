@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:postgres://localhost:5432/usermanager
+    username: admin
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  sql:
+    init:
+      mode: always
+
+app:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: confirmation.usermanager@gmail.com
+    password: fiqv ybrp znse tomu
+    protocol-key: mail.transport.protocol
+    protocol-value: smtp
+    smtp-key: mail.smtp.auth
+    smtp-value: true
+    starttls-key: mail.smtp.starttls.enable
+    starttls-value: true
+
+
