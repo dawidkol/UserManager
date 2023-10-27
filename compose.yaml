@@ -4,7 +4,7 @@ services:
     image: postgres:latest
     restart: always
     environment:
-      POSTGRES_DB: database
+      POSTGRES_DB: usermanager
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
     ports:

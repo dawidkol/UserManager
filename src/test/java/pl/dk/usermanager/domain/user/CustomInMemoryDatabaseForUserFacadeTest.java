@@ -5,8 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
-import pl.dk.usermanager.domain.user.User;
-import pl.dk.usermanager.domain.user.UserRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +22,7 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
     public <S extends User> S save(S entity) {
         User userToSave = User.builder()
                 .id(userId)
-                .username(entity.getUsername())
+                .email(entity.getEmail())
                 .password(entity.getPassword())
                 .build();
         userList.put(userId, userToSave);
