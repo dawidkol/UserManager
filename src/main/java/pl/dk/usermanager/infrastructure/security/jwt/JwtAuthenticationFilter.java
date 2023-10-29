@@ -1,7 +1,8 @@
 package pl.dk.usermanager.infrastructure.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

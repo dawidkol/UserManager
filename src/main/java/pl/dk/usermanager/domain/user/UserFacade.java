@@ -1,9 +1,12 @@
 package pl.dk.usermanager.domain.user;
 
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pl.dk.usermanager.domain.user.dto.*;
+import pl.dk.usermanager.domain.user.dto.UpdateUserDto;
+import pl.dk.usermanager.domain.user.dto.UserDto;
+import pl.dk.usermanager.domain.user.dto.UserLoginDto;
+import pl.dk.usermanager.domain.user.dto.UserRegistrationDto;
 
 import java.util.Optional;
 
@@ -23,15 +26,21 @@ public class UserFacade {
 
     public UserDto updateUser(UpdateUserDto updateUserDto) {
         User currentUser = userRepository.findByEmail(updateUserDto.currentEmail())
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(() -> new UsernameNotFoundException("email not exists in database"));
         boolean checkPassword = passwordEncoder.matches(updateUserDto.currentPassword(), currentUser.getPassword());
         if (checkPassword) {
             User userToUpdate = createUserToUpdate(updateUserDto, currentUser);
             User updatedUser = userRepository.save(userToUpdate);
             return userDtoMapper.mapToUserDto(updatedUser);
-        } else {
-            throw new UpdateUserNotPossibleException("User update not possible");
         }
+        else {
+            throw new UpdateUserNotPossibleException("Password not match");
+        }
+    }
+
+    public Optional<UserLoginDto> findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(userDtoMapper::mapToUserLoginDto);
     }
 
     private User createUserToUpdate(UpdateUserDto updateUserDto, User currentUser) {
@@ -40,11 +49,6 @@ public class UserFacade {
                 .email(updateUserDto.newEmail())
                 .password(passwordEncoder.encode(updateUserDto.newPassword()))
                 .build();
-    }
-
-    public Optional<UserLoginDto> findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .map(userDtoMapper::mapToUserLoginDto);
     }
 
 

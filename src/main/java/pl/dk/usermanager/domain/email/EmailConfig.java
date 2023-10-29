@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-
 import java.util.Properties;
 
 @Configuration
@@ -48,7 +47,7 @@ class EmailConfig {
         return new EmailFacade(javaMailSender);
     }
 
-    public JavaMailSenderImpl getJavaMailSender() {
+    private JavaMailSenderImpl getJavaMailSender() {
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
         javaMailSender.setPort(port);
         javaMailSender.setHost(host);
