@@ -176,4 +176,9 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
     public Page<User> findAll(Pageable pageable) {
         return null;
     }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return Optional.empty();
+    }
 }
