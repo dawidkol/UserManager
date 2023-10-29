@@ -2,8 +2,10 @@ package pl.dk.usermanager.domain.user;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.dk.usermanager.domain.user.dto.UserDto;
 import pl.dk.usermanager.domain.user.dto.UserRegistrationDto;
 
@@ -14,15 +16,14 @@ class UserFacadeTest {
     private UserFacade userFacade;
     private UserDtoMapper userDtoMapper;
     private CustomInMemoryDatabaseForUserFacadeTest repository;
-
-
-
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void init() {
         repository = new CustomInMemoryDatabaseForUserFacadeTest();
-        userDtoMapper = new UserDtoMapper();
-        userFacade = new UserFacade(repository, userDtoMapper);
+        passwordEncoder = Mockito.mock(PasswordEncoder.class);
+        userDtoMapper = new UserDtoMapper(passwordEncoder);
+        userFacade = new UserFacade(repository, userDtoMapper, passwordEncoder);
     }
 
 

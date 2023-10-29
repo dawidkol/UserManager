@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.dk.usermanager.domain.email.EmailFacade;
 import pl.dk.usermanager.domain.user.UserFacade;
-import pl.dk.usermanager.domain.user.dto.SuccessRegistrationUserDto;
 import pl.dk.usermanager.domain.user.dto.UserDto;
 import pl.dk.usermanager.domain.user.dto.UserRegistrationDto;
 
@@ -22,9 +21,10 @@ class RegistrationController {
 
     private final UserFacade userFacade;
     private final EmailFacade emailFacade;
+
     @PostMapping("/register")
-    ResponseEntity<SuccessRegistrationUserDto> register(@RequestBody UserRegistrationDto userRegistrationDto) {
-        SuccessRegistrationUserDto userDto = userFacade.registerUser(userRegistrationDto);
+    ResponseEntity<UserDto> register(@RequestBody UserRegistrationDto userRegistrationDto) {
+        UserDto userDto = userFacade.registerUser(userRegistrationDto);
         emailFacade.sendConfirmationMail(userDto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .replacePath("/api/v1/user/{id}")

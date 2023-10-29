@@ -48,7 +48,7 @@ class EmailConfig {
         return new EmailFacade(javaMailSender);
     }
 
-    private JavaMailSenderImpl getJavaMailSender() {
+    public JavaMailSenderImpl getJavaMailSender() {
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
         javaMailSender.setPort(port);
         javaMailSender.setHost(host);

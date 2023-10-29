@@ -5,11 +5,15 @@ spring:
     password: password
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
   sql:
     init:
       mode: always
+
+server:
+  error:
+    include-message: always
 
 app:
   mail:
@@ -24,4 +28,6 @@ app:
     starttls-key: mail.smtp.starttls.enable
     starttls-value: true
 
+jws:
+  sharedKey: bdc6e4de-a1b9-49d4-bdec-39c2f0c62261
 
