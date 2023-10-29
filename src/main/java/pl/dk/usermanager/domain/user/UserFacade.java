@@ -3,6 +3,7 @@ package pl.dk.usermanager.domain.user;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import pl.dk.usermanager.domain.user.dto.UpdateUserDto;
 import pl.dk.usermanager.domain.user.dto.UserDto;
 import pl.dk.usermanager.domain.user.dto.UserLoginDto;
@@ -25,15 +26,12 @@ public class UserFacade {
     }
 
     public UserDto updateUser(UpdateUserDto updateUserDto) {
-        User currentUser = userRepository.findByEmail(updateUserDto.currentEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("email not exists in database"));
-        boolean checkPassword = passwordEncoder.matches(updateUserDto.currentPassword(), currentUser.getPassword());
-        if (checkPassword) {
-            User userToUpdate = createUserToUpdate(updateUserDto, currentUser);
+        ValidationDto validate = validate(updateUserDto);
+        if (validate.logic()) {
+            User userToUpdate = createUserToUpdate(updateUserDto, validate.user());
             User updatedUser = userRepository.save(userToUpdate);
             return userDtoMapper.mapToUserDto(updatedUser);
-        }
-        else {
+        } else {
             throw new UpdateUserNotPossibleException("Password not match");
         }
     }
@@ -41,6 +39,26 @@ public class UserFacade {
     public Optional<UserLoginDto> findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(userDtoMapper::mapToUserLoginDto);
+    }
+
+    @Transactional
+    public void deleteUser(UpdateUserDto updateUserDto) {
+        ValidationDto validate = validate(updateUserDto);
+        if (validate.logic()) {
+            userRepository.deleteByEmail(updateUserDto.currentEmail());
+        } else {
+            throw new UpdateUserNotPossibleException("Password not match");
+        }
+    }
+
+    private <T extends UpdateUserDto> ValidationDto validate(T data) {
+        User currentUser = userRepository.findByEmail(data.currentEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("email not exists in database"));
+        boolean checkPassword = passwordEncoder.matches(data.currentPassword(), currentUser.getPassword());
+        return ValidationDto.builder()
+                .user(currentUser)
+                .logic(checkPassword)
+                .build();
     }
 
     private User createUserToUpdate(UpdateUserDto updateUserDto, User currentUser) {

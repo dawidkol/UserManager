@@ -6,7 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
@@ -178,5 +181,12 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
     @Override
     public Optional<User> findByEmail(String email) {
         return userList.stream().filter(x -> x.getEmail().equals(email)).findFirst();
+    }
+
+    @Override
+    public void deleteByEmail(String email) {
+        List<User> list = userList.stream().filter(x -> !x.getEmail().equals(email)).toList();
+        userList.clear();
+        userList.addAll(list);
     }
 }

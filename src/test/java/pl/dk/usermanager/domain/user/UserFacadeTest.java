@@ -9,6 +9,7 @@ import pl.dk.usermanager.domain.user.dto.UpdateUserDto;
 import pl.dk.usermanager.domain.user.dto.UserDto;
 import pl.dk.usermanager.domain.user.dto.UserLoginDto;
 import pl.dk.usermanager.domain.user.dto.UserRegistrationDto;
+
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -133,6 +134,25 @@ class UserFacadeTest {
         //when then
         assertThrows(UsernameNotFoundException.class, () -> userFacade.updateUser(dataToUpdate));
     }
+
+    @Test
+    void shouldDeleteUserWhenGivenCorrectData() {
+        //given
+        UpdateUserDto userToDelete = UpdateUserDto.builder()
+                .currentEmail("johndoe@gmail.com")
+                .currentPassword("hardPass")
+                .build();
+
+        //when
+        userFacade.deleteUser(userToDelete);
+
+        //then
+        assertAll(
+                () -> assertEquals(9, repository.userList.size())
+        );
+    }
+
+
 
 
 }

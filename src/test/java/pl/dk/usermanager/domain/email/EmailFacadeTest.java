@@ -1,15 +1,11 @@
 package pl.dk.usermanager.domain.email;
 
-import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import pl.dk.usermanager.domain.user.dto.UserDto;
-
-import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,13 +15,11 @@ class EmailFacadeTest {
     private EmailFacade emailFacade;
     private JavaMailSender javaMailSender;
 
-
     @BeforeEach
     void init() {
         javaMailSender = Mockito.mock(JavaMailSender.class);
         emailFacade = new EmailFacade(javaMailSender);
     }
-
 
     @Test
     void shouldSendConfirmationMail() {
@@ -34,7 +28,6 @@ class EmailFacadeTest {
                 .id(1L)
                 .email("user1@test.pl")
                 .build();
-
 
         SimpleMailMessage expectedMailMessage = new SimpleMailMessage();
         expectedMailMessage.setTo(userDto.email());
