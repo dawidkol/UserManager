@@ -1,36 +1,55 @@
 package pl.dk.usermanager.domain.email;
 
-import jakarta.mail.internet.MimeMessage;
-import lombok.AllArgsConstructor;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.SimpleMailMessage;
 import pl.dk.usermanager.domain.user.dto.UserDto;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+
 
 class EmailFacadeTest {
-
-
     private EmailFacade emailFacade;
+    private JavaMailSender javaMailSender;
+
 
     @BeforeEach
     void init() {
-        emailFacade = mock(EmailFacade.class);
+        javaMailSender = Mockito.mock(JavaMailSender.class);
+        emailFacade = new EmailFacade(javaMailSender);
     }
 
 
     @Test
-    void shouldSendConfirmationEmail() {
-
+    void shouldSendConfirmationMail() {
         //given
-        UserDto userDto = UserDto.builder().id(1L).email("dawid.kolano@gmail.com").build();
+        UserDto userDto = UserDto.builder()
+                .id(1L)
+                .email("user1@test.pl")
+                .build();
+
+
+        SimpleMailMessage expectedMailMessage = new SimpleMailMessage();
+        expectedMailMessage.setTo(userDto.email());
+        expectedMailMessage.setSubject(EmailFacade.EMAIL_SUBJECT);
+        expectedMailMessage.setText(EmailFacade.EMAIL_MESSAGE);
+
+        // when
         emailFacade.sendConfirmationMail(userDto);
+
+        // then
+        assertAll(
+                () -> Mockito.verify(javaMailSender, Mockito.times(1)).send(any(SimpleMailMessage.class)),
+                () -> Mockito.verify(javaMailSender).send(Mockito.eq(expectedMailMessage))
+        );
+
 
     }
 }

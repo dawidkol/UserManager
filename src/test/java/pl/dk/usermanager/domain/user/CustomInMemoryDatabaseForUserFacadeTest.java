@@ -6,16 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 
 class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
-
-
-    Map<Long, User> userList = new HashMap<>();
+    List<User> userList = new ArrayList<>();
     private Long userId = 1L;
 
     @Override
@@ -25,15 +20,23 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .build();
-        userList.put(userId, userToSave);
+        userList.add(userToSave);
         userId++;
         return (S) userToSave;
     }
 
+    @Override
+    public <S extends User> List<S> saveAll(Iterable<S> entities) {
+        Iterator<S> iterator = entities.iterator();
+        while (iterator.hasNext()) {
+            userList.add(iterator.next());
+            userId++;
+        }
+        return (List<S>) userList;
+    }
 
     @Override
     public void flush() {
-
     }
 
     @Override
@@ -113,11 +116,6 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
 
 
     @Override
-    public <S extends User> List<S> saveAll(Iterable<S> entities) {
-        return null;
-    }
-
-    @Override
     public Optional<User> findById(Long aLong) {
         return Optional.empty();
     }
@@ -179,6 +177,6 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return Optional.empty();
+        return userList.stream().filter(x -> x.getEmail().equals(email)).findFirst();
     }
 }

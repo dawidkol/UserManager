@@ -5,17 +5,10 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.hibernate.mapping.List;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import pl.dk.usermanager.domain.user.UserFacade;
 
 import java.text.ParseException;
@@ -44,8 +37,6 @@ public class JwtService {
         }
     }
 
-
-    //    String createSignedJWT(String username, List<String> authorities) {
     String createSignedJWT(String username) {
         JWSHeader header = new JWSHeader(jwsAlgorithm);
         LocalDateTime nowPlus1Hour = LocalDateTime.now().plusSeconds(EXP_TIME_SEC);
@@ -98,20 +89,16 @@ public class JwtService {
         } catch (ParseException e) {
             throw new JwtAuthenticationException("Token does not have username");
         }
-
     }
 
     Authentication createAuthentication(SignedJWT signedJWT) {
         String subject;
-//        List<String> authorities;
         try {
             JWTClaimsSet jwtClaimsSet = signedJWT.getJWTClaimsSet();
             subject = jwtClaimsSet.getSubject();
-//            authorities = jwtClaimsSet.getStringListClaim("authorities");
         } catch (ParseException e) {
             throw new JwtAuthenticationException("Missing claims sub or authorities");
         }
-//        List<SimpleGrantedAuthority> grantedAuthorities = authorities.stream().map(SimpleGrantedAuthority::new).toList();
         return new UsernamePasswordAuthenticationToken(subject, null, Collections.emptyList());
     }
 }

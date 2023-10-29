@@ -8,7 +8,6 @@ import pl.dk.usermanager.domain.user.dto.UserRegistrationDto;
 
 @AllArgsConstructor
 class UserDtoMapper {
-    private static final String REGISTRATION_CONFIRMATION_MESSAGE = "Rejestracja przebiegła pomyślnie. Sprawdź email";
     private PasswordEncoder passwordEncoder;
 
     User mapToUser(UserRegistrationDto userRegistrationDto) {
@@ -24,15 +23,6 @@ class UserDtoMapper {
                 .email(user.getEmail())
                 .build();
     }
-
-//    SuccessRegistrationUserDto mapToSuccessRegistrationUserDto(User user) {
-//        return SuccessRegistrationUserDto.builder()
-//                .id(user.getId())
-//                .email(user.getEmail())
-//                .message(REGISTRATION_CONFIRMATION_MESSAGE)
-//                .build();
-//    }
-
     UserLoginDto mapToUserLoginDto(User user) {
         return UserLoginDto.builder()
                 .email(user.getEmail())

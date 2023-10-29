@@ -13,7 +13,6 @@ import pl.dk.usermanager.domain.user.dto.UserLoginDto;
 @AllArgsConstructor
 class UserDetailsServiceImpl implements UserDetailsService {
 
-
     private final UserFacade userFacade;
 
     @Override
@@ -27,7 +26,6 @@ class UserDetailsServiceImpl implements UserDetailsService {
         return User.builder()
                 .username(userLoginDto.email())
                 .password(userLoginDto.password())
-//                .roles(credentials.roles().toArray(String[]::new))
                 .build();
     }
 }
