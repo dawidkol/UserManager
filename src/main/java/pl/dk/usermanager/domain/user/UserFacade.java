@@ -1,9 +1,10 @@
 package pl.dk.usermanager.domain.user;
 
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import pl.dk.usermanager.domain.user.dto.UpdateUserDto;
 import pl.dk.usermanager.domain.user.dto.UserDto;
 import pl.dk.usermanager.domain.user.dto.UserLoginDto;
@@ -15,24 +16,24 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserFacade {
 
+    public static final String REFRESH_TOKEN_MESSAGE = "User from token dont exists in app, refresh your token";
+    public static final String ACTIVE_ACCOUNT_MESSAGE = "Active your account";
     private final UserRepository userRepository;
     private final UserDtoMapper userDtoMapper;
     private final PasswordEncoder passwordEncoder;
-
     public UserDto registerUser(UserRegistrationDto userRegistrationDto) {
         User userToSave = userDtoMapper.mapToUser(userRegistrationDto);
         User savedUser = userRepository.save(userToSave);
         return userDtoMapper.mapToUserDto(savedUser);
     }
-
-    public UserDto updateUser(UpdateUserDto updateUserDto) {
-        ValidationDto validate = validate(updateUserDto);
-        if (validate.logic()) {
-            User userToUpdate = createUserToUpdate(updateUserDto, validate.user());
-            User updatedUser = userRepository.save(userToUpdate);
-            return userDtoMapper.mapToUserDto(updatedUser);
+    public void updateUser(UpdateUserDto updateUserDto) {
+        User userInDbFromSecurityContextHolder = findUserInDbFromSecurityContextHolder();
+        String email = userInDbFromSecurityContextHolder.getUsername();
+        if (userInDbFromSecurityContextHolder.isEnabled()) {
+            UpdateUserDto userToUpdateWithEncodedPassword = createUserToUpdateWithEncodedPassword(updateUserDto);
+            userRepository.updateUser(userToUpdateWithEncodedPassword, email);
         } else {
-            throw new UpdateUserNotPossibleException("Password not match");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, ACTIVE_ACCOUNT_MESSAGE);
         }
     }
 
@@ -41,33 +42,29 @@ public class UserFacade {
                 .map(userDtoMapper::mapToUserLoginDto);
     }
 
-    @Transactional
-    public void deleteUser(UpdateUserDto updateUserDto) {
-        ValidationDto validate = validate(updateUserDto);
-        if (validate.logic()) {
-            userRepository.deleteByEmail(updateUserDto.currentEmail());
+    public void deleteUser() {
+        User userFromDb = findUserInDbFromSecurityContextHolder();
+        if (userFromDb.isEnabled()) {
+            userRepository.delete(userFromDb);
         } else {
-            throw new UpdateUserNotPossibleException("Password not match");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Active your account");
         }
     }
 
-    private <T extends UpdateUserDto> ValidationDto validate(T data) {
-        User currentUser = userRepository.findByEmail(data.currentEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("email not exists in database"));
-        boolean checkPassword = passwordEncoder.matches(data.currentPassword(), currentUser.getPassword());
-        return ValidationDto.builder()
-                .user(currentUser)
-                .logic(checkPassword)
-                .build();
+    private User findUserInDbFromSecurityContextHolder() {
+        String userFromSecurityContext = getUserFromSecurityContext();
+        return userRepository.findByEmail(userFromSecurityContext)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, REFRESH_TOKEN_MESSAGE));
     }
 
-    private User createUserToUpdate(UpdateUserDto updateUserDto, User currentUser) {
-        return User.builder()
-                .id(currentUser.getId())
-                .email(updateUserDto.newEmail())
-                .password(passwordEncoder.encode(updateUserDto.newPassword()))
-                .build();
+    private String getUserFromSecurityContext() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-
+    private UpdateUserDto createUserToUpdateWithEncodedPassword(UpdateUserDto updateUserDto) {
+        return UpdateUserDto.builder()
+                .newEmail(updateUserDto.newEmail())
+                .newPassword(passwordEncoder.encode(updateUserDto.newPassword()))
+                .build();
+    }
 }

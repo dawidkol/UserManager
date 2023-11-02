@@ -1,7 +1,6 @@
 package pl.dk.usermanager.infrastructure.security.jwt;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,37 +16,39 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @AllArgsConstructor
-@Slf4j
 class SecurityConfig {
 
     private final JwtService jwtService;
+    private final JwtAuthenticationFailureHandler failureHandler = new JwtAuthenticationFailureHandler();
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
         AuthenticationManager authenticationManager = authenticationManagerBuilder.getOrBuild();
 
-
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, jwtService);
-        BearerTokenFilter bearerTokenFilter = new BearerTokenFilter(jwtService);
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, jwtService, failureHandler);
+        BearerTokenFilter bearerTokenFilter = new BearerTokenFilter(jwtService, failureHandler);
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers(new AntPathRequestMatcher("/api/v1/user/edit", HttpMethod.PUT.toString()))
+                .requestMatchers(new AntPathRequestMatcher("/api/v1/user/me/edit", HttpMethod.PUT.toString()))
                 .authenticated()
-                .requestMatchers(new AntPathRequestMatcher("/api/v1/user/delete", HttpMethod.DELETE.toString()))
+                .requestMatchers(new AntPathRequestMatcher("/api/v1/user/me/delete", HttpMethod.DELETE.toString()))
                 .authenticated()
                 .anyRequest()
                 .permitAll()
         );
 
+
         http.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrfCustomizer -> csrfCustomizer.disable());
         http.addFilterBefore(jwtAuthenticationFilter, AuthorizationFilter.class);
-        http.addFilterBefore(bearerTokenFilter, AuthorizationFilter.class);
+        http.addFilterAfter(bearerTokenFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
-    PasswordEncoder passwordEncoder () {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+
 }

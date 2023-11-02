@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -24,19 +23,20 @@ import java.io.IOException;
 class JwtAuthenticationFilter extends HttpFilter {
 
     private final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-    private static final RequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/api/v1/login", "POST", false);
+    private static final RequestMatcher LOGIN_MATCHER = new AntPathRequestMatcher("/api/v1/login", "POST", false);
     private final AuthenticationManager authenticationManager;
-    private final AuthenticationFailureHandler failureHandler = new SimpleUrlAuthenticationFailureHandler();
+    private final AuthenticationFailureHandler failureHandler;
     private final AuthenticationSuccessHandler successHandler;
 
-    JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtService jwtService) {
+    JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtService jwtService, AuthenticationFailureHandler failureHandler) {
         this.authenticationManager = authenticationManager;
         successHandler = new JwtAuthenticationSuccessHandler(jwtService);
+        this.failureHandler = failureHandler;
     }
 
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        if (!DEFAULT_ANT_PATH_REQUEST_MATCHER.matches(request)) {
+        if (!LOGIN_MATCHER.matches(request)) {
             filterChain.doFilter(request, response);
         } else {
             try {

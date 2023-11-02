@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
+import pl.dk.usermanager.domain.user.dto.UpdateUserDto;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
+public class CustomInMemoryUserRepository implements UserRepository {
     List<User> userList = new ArrayList<>();
     private Long userId = 1L;
 
@@ -150,7 +151,7 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
 
     @Override
     public void delete(User entity) {
-
+        userList.remove(entity);
     }
 
     @Override
@@ -180,13 +181,41 @@ class CustomInMemoryDatabaseForUserFacadeTest implements UserRepository {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return userList.stream().filter(x -> x.getEmail().equals(email)).findFirst();
+        return userList.stream()
+                .filter(x -> x.getEmail().equals(email))
+                .findFirst();
     }
 
     @Override
-    public void deleteByEmail(String email) {
-        List<User> list = userList.stream().filter(x -> !x.getEmail().equals(email)).toList();
+    public void activeUser(Long userId) {
+        User user = userList.stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow();
+        userList.remove(user);
+    }
+
+    @Override
+    public void updateUser(UpdateUserDto updateUserDto, String currentUser) {
+        User user = userList.stream()
+                .filter(u -> u.getEmail().equals(currentUser))
+                .findFirst()
+                .orElseThrow();
+
+        List<User> list = userList.stream()
+                .filter(u -> !u.getEmail().equals(currentUser))
+                .toList();
+
+        User userToUpdate = User.builder()
+                .id(user.getId())
+                .email(updateUserDto.newEmail())
+                .password(updateUserDto.newPassword())
+                .active(true)
+                .build();
+
         userList.clear();
+        userList.add(userToUpdate);
         userList.addAll(list);
     }
+
+
+
+
 }

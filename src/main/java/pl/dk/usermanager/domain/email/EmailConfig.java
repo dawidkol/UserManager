@@ -43,11 +43,11 @@ class EmailConfig {
 
     @Bean
     EmailFacade emailFacade() {
-        JavaMailSender javaMailSender = getJavaMailSender();
+        JavaMailSender javaMailSender = createJavaMailSenderImpl();
         return new EmailFacade(javaMailSender);
     }
 
-    private JavaMailSenderImpl getJavaMailSender() {
+     JavaMailSenderImpl createJavaMailSenderImpl() {
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
         javaMailSender.setPort(port);
         javaMailSender.setHost(host);

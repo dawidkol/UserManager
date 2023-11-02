@@ -2,9 +2,13 @@ package pl.dk.usermanager.domain.user;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.mockito.Spy;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 import pl.dk.usermanager.domain.user.dto.UpdateUserDto;
 import pl.dk.usermanager.domain.user.dto.UserDto;
 import pl.dk.usermanager.domain.user.dto.UserLoginDto;
@@ -16,21 +20,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UserFacadeTest {
 
+    @Spy
     private UserFacade userFacade;
     private UserDtoMapper userDtoMapper;
-    private CustomInMemoryDatabaseForUserFacadeTest repository;
+
+    private CustomInMemoryUserRepository repository;
     private PasswordEncoder passwordEncoder;
     private UserFacadeTestData testData;
 
 
     @BeforeEach
     void init() {
-        repository = new CustomInMemoryDatabaseForUserFacadeTest();
+        repository = new CustomInMemoryUserRepository();
         passwordEncoder = new BCryptPasswordEncoder();
         userDtoMapper = new UserDtoMapper(passwordEncoder);
         userFacade = new UserFacade(repository, userDtoMapper, passwordEncoder);
         testData = new UserFacadeTestData();
         repository.saveAll(testData.users);
+
     }
 
 
@@ -57,7 +64,6 @@ class UserFacadeTest {
     void shouldFindUserByGivenEmail() {
         //given
         User user = testData.users.get(1);
-        Long id = user.getId();
         String email = user.getEmail();
         String password = user.getPassword();
 
@@ -89,70 +95,60 @@ class UserFacadeTest {
     @Test
     void shouldUpdateUser() {
         //given
-        User user = repository.userList.get(0);
-        UpdateUserDto dataToUpdate = UpdateUserDto.builder()
-                .currentEmail(user.getEmail())
-                .currentPassword("hardPass")
-                .newEmail("newemail@test.pl")
+        UpdateUserDto newUserData
+                = UpdateUserDto.builder()
+                .newEmail("newemail@test.com")
                 .newPassword("newPassword")
                 .build();
+        User user = repository.userList.get(0);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         //when
-        UserDto updatedUser = userFacade.updateUser(dataToUpdate);
+        userFacade.updateUser(newUserData);
+
+        User updatedUser = repository.userList.get(0);
 
         //then
         assertAll(
-                () -> assertEquals(dataToUpdate.newEmail(), updatedUser.email())
+                () -> assertEquals(newUserData.newEmail(), updatedUser.getUsername()),
+                () -> assertTrue(passwordEncoder.matches(newUserData.newPassword(), updatedUser.getPassword()))
         );
     }
 
     @Test
-    void shouldThrowPasswordNotMatchExceptionWhenGivenCurrenPasswordIsInvalid() {
+    void shouldThrowUnauthorizedAccountIsNotActivate() {
         //given
-        User user = repository.userList.get(1);
-        UpdateUserDto dataToUpdate = UpdateUserDto.builder()
-                .currentEmail(user.getEmail())
-                .currentPassword("wrongPassword")
-                .newEmail("newemail@test.pl")
-                .newPassword("newPassword")
-                .build();
-
-        //when then
-        assertThrows(UpdateUserNotPossibleException.class, () -> userFacade.updateUser(dataToUpdate));
-    }
-
-    @Test
-    void shouldThrowUsernameNotFoundExceptionWhenGivenCurrentEmailNotExistsInDb() {
-        //given
-        UpdateUserDto dataToUpdate = UpdateUserDto.builder()
-                .currentEmail("notexisting@email.com")
-                .currentPassword("wrongPassword")
+        UpdateUserDto newUserData
+                = UpdateUserDto.builder()
                 .newEmail("newemail@test.com")
                 .newPassword("newPassword")
                 .build();
 
-        //when then
-        assertThrows(UsernameNotFoundException.class, () -> userFacade.updateUser(dataToUpdate));
-    }
-
-    @Test
-    void shouldDeleteUserWhenGivenCorrectData() {
-        //given
-        UpdateUserDto userToDelete = UpdateUserDto.builder()
-                .currentEmail("johndoe@gmail.com")
-                .currentPassword("hardPass")
-                .build();
-
-        //when
-        userFacade.deleteUser(userToDelete);
+        User user = repository.userList.get(1);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         //then
-        assertAll(
-                () -> assertEquals(9, repository.userList.size())
-        );
+        assertThrows(ResponseStatusException.class, () -> userFacade.updateUser(newUserData));
+        SecurityContextHolder.clearContext();
     }
 
 
+    @Test
+    void shouldDeleteUserWhenUserIsEnabled() {
+        //given
+        User user = repository.userList.get(0);
 
+        //when
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        userFacade.deleteUser();
+
+        //then
+        assertEquals(9, repository.userList.size());
+    }
 
 }
+
+

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import pl.dk.usermanager.domain.user.UserFacade;
 
 import java.text.ParseException;
 import java.time.LocalDateTime;
@@ -25,13 +24,12 @@ public class JwtService {
     private final JWSAlgorithm jwsAlgorithm = JWSAlgorithm.HS256;
     private final JWSSigner signer;
     private final JWSVerifier verifier;
-    private final UserFacade userFacade;
 
-    public JwtService(@Value("${jws.sharedKey}") String sharedKey, UserFacade userFacade) {
+
+    public JwtService(@Value("${jws.sharedKey}") String sharedKey) {
         try {
             signer = new MACSigner(sharedKey.getBytes());
             verifier = new MACVerifier(sharedKey.getBytes());
-            this.userFacade = userFacade;
         } catch (JOSEException e) {
             throw new RuntimeException(e);
         }
@@ -39,12 +37,11 @@ public class JwtService {
 
     String createSignedJWT(String username) {
         JWSHeader header = new JWSHeader(jwsAlgorithm);
-        LocalDateTime nowPlus1Hour = LocalDateTime.now().plusSeconds(EXP_TIME_SEC);
-        Date expirationDate = Date.from(nowPlus1Hour.atZone(ZoneId.systemDefault()).toInstant());
+        LocalDateTime nowPlus1Month = LocalDateTime.now().plusSeconds(EXP_TIME_SEC);
+        Date expirationDate = Date.from(nowPlus1Month.atZone(ZoneId.systemDefault()).toInstant());
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(username)
                 .expirationTime(expirationDate)
-//                .claim("authorities", authorities)
                 .build();
         SignedJWT signedJWT = new SignedJWT(header, claimsSet);
         try {
@@ -57,7 +54,10 @@ public class JwtService {
 
     void verifySignature(SignedJWT signedJWT) {
         try {
-            signedJWT.verify(verifier);
+            boolean verified = signedJWT.verify(verifier);
+            if (!verified) {
+                throw new JwtAuthenticationException("JWT verification failed for token %s".formatted(signedJWT.serialize()));
+            }
         } catch (JOSEException e) {
             throw new JwtAuthenticationException("JWT verification failed for token %s".formatted(signedJWT.serialize()));
         }
@@ -75,21 +75,10 @@ public class JwtService {
                 throw new JwtAuthenticationException("Token Expired at %s".formatted(expirationDateTime));
             }
         } catch (ParseException e) {
-            throw new JwtAuthenticationException("Token does not have exp claim");
+            throw new JwtAuthenticationException("Invalid token");
         }
     }
 
-    void verifyUsername(SignedJWT signedJWT) {
-        try {
-            JWTClaimsSet jwtClaimsSet = signedJWT.getJWTClaimsSet();
-            String email = jwtClaimsSet.getSubject();
-            if (userFacade.findByEmail(email).isEmpty()) {
-                throw new JwtAuthenticationException("Invalid username in token");
-            }
-        } catch (ParseException e) {
-            throw new JwtAuthenticationException("Token does not have username");
-        }
-    }
 
     Authentication createAuthentication(SignedJWT signedJWT) {
         String subject;

@@ -14,6 +14,7 @@ class UserDtoMapper {
         return User.builder()
                 .email(userRegistrationDto.email())
                 .password(passwordEncoder.encode(userRegistrationDto.password()))
+                .active(false)
                 .build();
     }
 
@@ -30,4 +31,7 @@ class UserDtoMapper {
                 .build();
 
     }
+
+
+
 }

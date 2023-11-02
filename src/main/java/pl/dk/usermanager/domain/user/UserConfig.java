@@ -7,7 +7,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 class UserConfig {
-
     @Bean
     UserFacade userFacade(UserRepository userRepository) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
