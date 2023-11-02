@@ -30,6 +30,7 @@ class JwtAuthenticationFailureHandler implements AuthenticationFailureHandler {
                 );
         new ObjectMapper().writeValue(response.getWriter(), wrapper);
     }
+
     private record Wrapper(int status, String error, String message, String path) {
     }
 

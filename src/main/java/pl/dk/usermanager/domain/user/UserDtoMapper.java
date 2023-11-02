@@ -24,6 +24,7 @@ class UserDtoMapper {
                 .email(user.getEmail())
                 .build();
     }
+
     UserLoginDto mapToUserLoginDto(User user) {
         return UserLoginDto.builder()
                 .email(user.getEmail())
@@ -31,7 +32,6 @@ class UserDtoMapper {
                 .build();
 
     }
-
 
 
 }

@@ -12,6 +12,7 @@ import pl.dk.usermanager.domain.user.User;
 @AllArgsConstructor
 @Getter
 @Builder
+@ToString
 @EqualsAndHashCode
 public class ConfirmationToken {
 
@@ -21,7 +22,7 @@ public class ConfirmationToken {
     @NotNull
     @UUID
     private String token;
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 }

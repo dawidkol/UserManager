@@ -1,5 +1,6 @@
 package pl.dk.usermanager.domain.user;
 
+import lombok.Getter;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,8 +14,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+@Getter
 public class CustomInMemoryUserRepository implements UserRepository {
-    List<User> userList = new ArrayList<>();
+    private List<User> userList = new ArrayList<>();
     private Long userId = 1L;
 
     @Override
@@ -121,7 +123,9 @@ public class CustomInMemoryUserRepository implements UserRepository {
 
     @Override
     public Optional<User> findById(Long aLong) {
-        return Optional.empty();
+        return userList.stream().filter(u -> u.getId()
+                .equals(aLong))
+                .findFirst();
     }
 
     @Override
@@ -214,8 +218,6 @@ public class CustomInMemoryUserRepository implements UserRepository {
         userList.add(userToUpdate);
         userList.addAll(list);
     }
-
-
 
 
 }

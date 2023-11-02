@@ -21,11 +21,13 @@ public class UserFacade {
     private final UserRepository userRepository;
     private final UserDtoMapper userDtoMapper;
     private final PasswordEncoder passwordEncoder;
+
     public UserDto registerUser(UserRegistrationDto userRegistrationDto) {
         User userToSave = userDtoMapper.mapToUser(userRegistrationDto);
         User savedUser = userRepository.save(userToSave);
         return userDtoMapper.mapToUserDto(savedUser);
     }
+
     public void updateUser(UpdateUserDto updateUserDto) {
         User userInDbFromSecurityContextHolder = findUserInDbFromSecurityContextHolder();
         String email = userInDbFromSecurityContextHolder.getUsername();

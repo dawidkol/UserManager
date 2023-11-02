@@ -19,7 +19,7 @@ public class ConfirmationTokenFacade {
         User user = findUserById(userDto.id());
         ConfirmationToken tokenToSave = ConfirmationToken.builder()
                 .token(generateConfirmationToken())
-                .user(user)
+//                .user(user)
                 .build();
         return confirmationTokenRepository.save(tokenToSave);
     }

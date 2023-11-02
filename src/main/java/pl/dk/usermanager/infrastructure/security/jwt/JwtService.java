@@ -20,7 +20,8 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private static final int EXP_TIME_SEC = 30 * 24 * 60 * 60;
+    @Value("${app.token.expiration-time-sec}")
+    private int EXP_TIME_SEC;
     private final JWSAlgorithm jwsAlgorithm = JWSAlgorithm.HS256;
     private final JWSSigner signer;
     private final JWSVerifier verifier;
@@ -37,8 +38,8 @@ public class JwtService {
 
     String createSignedJWT(String username) {
         JWSHeader header = new JWSHeader(jwsAlgorithm);
-        LocalDateTime nowPlus1Month = LocalDateTime.now().plusSeconds(EXP_TIME_SEC);
-        Date expirationDate = Date.from(nowPlus1Month.atZone(ZoneId.systemDefault()).toInstant());
+        LocalDateTime nowPlusExpirationTime = LocalDateTime.now().plusSeconds(EXP_TIME_SEC);
+        Date expirationDate = Date.from(nowPlusExpirationTime.atZone(ZoneId.systemDefault()).toInstant());
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(username)
                 .expirationTime(expirationDate)

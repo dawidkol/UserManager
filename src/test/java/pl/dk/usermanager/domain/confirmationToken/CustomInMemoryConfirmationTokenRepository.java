@@ -1,5 +1,6 @@
 package pl.dk.usermanager.domain.confirmationToken;
 
+import lombok.Getter;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -7,10 +8,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-
+@Getter
 class CustomInMemoryConfirmationTokenRepository implements ConfirmationTokenRepository {
 
     private List<ConfirmationToken> tokens = new ArrayList<>();
@@ -117,12 +119,17 @@ class CustomInMemoryConfirmationTokenRepository implements ConfirmationTokenRepo
 
     @Override
     public <S extends ConfirmationToken> List<S> saveAll(Iterable<S> entities) {
-        return null;
+        Iterator<S> iterator = entities.iterator();
+        while (iterator.hasNext()) {
+            tokens.add(iterator.next());
+            tokenId++;
+        }
+        return (List<S>) tokens;
     }
 
     @Override
     public Optional<ConfirmationToken> findById(Long aLong) {
-        return Optional.empty();
+        return tokens.stream().filter(t -> t.getId().equals(aLong)).findFirst();
     }
 
     @Override

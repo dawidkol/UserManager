@@ -1,4 +1,4 @@
-package pl.dk.usermanager.infrastructure.user.controller.errorHandler;
+package pl.dk.usermanager.infrastructure.user.controller.errorhandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
@@ -19,10 +19,12 @@ class RestControllersErrorHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(SQLException.class)
     public String userWithCurrentDataExistsInDatabase() throws IOException {
-        String message ="User you want to register already exists in app";
+        String message = "User you want to register already exists in app";
         return new ObjectMapper().writeValueAsString(new SqlExceptionWrapper(message));
     }
-    private record SqlExceptionWrapper(String message){}
+
+    private record SqlExceptionWrapper(String message) {
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)

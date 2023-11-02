@@ -7,8 +7,11 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import pl.dk.usermanager.domain.confirmationToken.ConfirmationToken;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -29,6 +32,8 @@ public class User implements UserDetails {
     @Size(min = 5)
     private String password;
     private Boolean active;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<ConfirmationToken> userTokens = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

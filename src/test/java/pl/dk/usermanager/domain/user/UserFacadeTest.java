@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UserFacadeTest {
 
-    @Spy
     private UserFacade userFacade;
     private UserDtoMapper userDtoMapper;
 
@@ -36,7 +35,7 @@ class UserFacadeTest {
         userDtoMapper = new UserDtoMapper(passwordEncoder);
         userFacade = new UserFacade(repository, userDtoMapper, passwordEncoder);
         testData = new UserFacadeTestData();
-        repository.saveAll(testData.users);
+        repository.saveAll(testData.getUsers());
 
     }
 
@@ -54,7 +53,7 @@ class UserFacadeTest {
 
         //then
         assertAll(
-                () -> assertEquals(11, repository.userList.size()),
+                () -> assertEquals(11, repository.getUserList().size()),
                 () -> assertEquals(user.email(), userDto.email()),
                 () -> assertEquals(11, userDto.id())
         );
@@ -63,7 +62,7 @@ class UserFacadeTest {
     @Test
     void shouldFindUserByGivenEmail() {
         //given
-        User user = testData.users.get(1);
+        User user = repository.getUserList().get(1);
         String email = user.getEmail();
         String password = user.getPassword();
 
@@ -100,14 +99,14 @@ class UserFacadeTest {
                 .newEmail("newemail@test.com")
                 .newPassword("newPassword")
                 .build();
-        User user = repository.userList.get(0);
+        User user = repository.getUserList().get(0);
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         //when
         userFacade.updateUser(newUserData);
 
-        User updatedUser = repository.userList.get(0);
+        User updatedUser = repository.getUserList().get(0);
 
         //then
         assertAll(
@@ -125,7 +124,7 @@ class UserFacadeTest {
                 .newPassword("newPassword")
                 .build();
 
-        User user = repository.userList.get(1);
+        User user = repository.getUserList().get(1);
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -138,7 +137,7 @@ class UserFacadeTest {
     @Test
     void shouldDeleteUserWhenUserIsEnabled() {
         //given
-        User user = repository.userList.get(0);
+        User user = repository.getUserList().get(0);
 
         //when
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
@@ -146,7 +145,7 @@ class UserFacadeTest {
         userFacade.deleteUser();
 
         //then
-        assertEquals(9, repository.userList.size());
+        assertEquals(9, repository.getUserList().size());
     }
 
 }
