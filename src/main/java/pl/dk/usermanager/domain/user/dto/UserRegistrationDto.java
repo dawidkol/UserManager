@@ -11,7 +11,7 @@ public record UserRegistrationDto(
         @Email
         String email,
         @NotNull
-        @Size(min = 5)
+        @Size(min = 5, max = 30)
         String password
 ) {
 }

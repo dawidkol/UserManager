@@ -11,7 +11,7 @@ public record UpdateUserDto(
         @Email
         String newEmail,
         @NotNull
-        @Size(min = 5)
+        @Size(min = 5, max = 30)
         String newPassword
 ) {
 }
