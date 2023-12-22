@@ -20,8 +20,8 @@ app:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: confirmation.usermanager@gmail.com
-    password: fiqv ybrp znse tomu
+    username: # email to provide
+    password: # password to provice
     protocol-key: mail.transport.protocol
     protocol-value: smtp
     smtp-key: mail.smtp.auth
